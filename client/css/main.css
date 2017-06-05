@@ -1,0 +1,10 @@
+.flex-container{
+   display: flex
+   flex-wrap: wrap
+}
+
+.flex-item {
+  flex-direction: row;
+  float: left;
+  border-radius: 5px;
+}

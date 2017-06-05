@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Welcome</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+  <link rel="stylesheet" href="./css/main.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/app.js"></script>
+  <script src="./js/fb.js"></script>
+
+</head>
+
+<body style="background-color:#F7F7F7">
+
+
+<div id="app">
+
+  <div class="ui secondary raised segment  menu" style="background-color:#446CB3;">
+    <a href="#" style="padding-left:3%; padding-top:6px;"><h1 style="color:white">PACETODOS</h1></a>
+
+    <div class="right menu">
+      <a v-if="token==true" id="login" class="ui item" style="color:white;font-size:15px"><b>Akun</b></a>
+      <div class="ui custom popup login top left transition hidden">
+        <form class="ui form" style="width:250px">
+          <h1>{{user.name}}</h1>
+        <button class="ui brown button" type="button" style="width:100%;background-color:#446CB3" @click="logout">Logout</button>
+      </form>
+      </div>
+
+      <a v-if="token==false" id="login" class="ui item" style="color:white;font-size:15px"><b>Login</b></a>
+      <div class="ui custom popup login top left transition hidden">
+        <form class="ui form" style="width:250px">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" v-model="username" placeholder="Username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="text" v-model="password" placeholder="Passowrd">
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            <input type="checkbox" tabindex="0" class="hidden" checked>
+            <label>Ingat saya</label>
+          </div>
+          <a href="#" style="margin-left:50px">Lupa Password?</a>
+        </div>
+        <button class="ui brown button" type="button" style="width:100%;background-color:#446CB3" @click="login">Login</button>
+        <div class="ui divider"></div>
+        <div class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="continue_with" data-show-faces="false" data-auto-logout-link="false" data-use-continue-as="false"></div>
+
+      </form>
+      </div>
+      <a v-if="token==false" class="ui item">
+          <button id="daftar" class="ui inverted button"><b>Daftar</b></button>
+      </a>
+    </div>
+  </div>
+
+
+  <div v-if="token==true" class="flex-container" style="margin-left:5%;">
+
+      <div class="flex-item" style="width:30%; margin-top:15px;">
+        <div class="ui items">
+          <div class="item">
+
+            <div class="ui special cards">
+              <div class="card">
+                <div class="blurring dimmable image">
+                  <div class="ui dimmer">
+                    <div class="content">
+
+                    </div>
+                  </div>
+
+                </div>
+                <div class="content center aligned ">
+                  <a class="header" style="font-size:30px">{{remainTask}}</a>
+                  <div class="meta">
+                    <span>TUGAS TERSISA</span>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+
+      </div>
+      </div>
+
+      <div  class="flex-item ui segment" style="width:60%; background-color:white; border-radius:5px; margin-right:10%">
+
+          <div class="ui fluid action input" style="margin:30px 50px 30px 50px">
+            <input v-model="new_task" type="text" placeholder="Tugas baru...">
+            <div class="ui blue button" style="background-color:#446CB3;" @click="addTask">Tambah</div>
+          </div>
+
+          <div class="ui middle aligned divided list" style="margin:10px 50px 10px 50px">
+
+              <h1 style="font-size:20px;">Tugas</h1>
+
+              <div v-for="(task,index) in tasks" class="item" style="margin-bottom:10px;">
+                <div class="ui equal width stretched grid" style="margin-top:10px;">
+                  <div class="column">
+                    <div class="ui grid">
+                        <div class="ui checkbox" style="width:80%;">
+                          <input v-if="task.is_complete==true" type="checkbox" checked="" @click="uncompleteTask(task)">
+                          <input v-if="task.is_complete==false" type="checkbox" @click="completeTask(task)">
+                          <label>{{task.title}}</label>
+                        </div>
+                        <div class="ui" style="width:20%;">
+                          <a ><i class="grid large content icon" style="color:grey" @click="detilTask(task)"></i></a>
+                          <a ><i class="grid large edit icon" style="color:grey" @click="editTask(task)"></i></a>
+                          <a ><i class="grid large trash outline icon" style="color:grey" @click="deleteTask(task,index)"></i></a>
+                        </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+
+              <div :class="modalEditMemo" style="margin-top: -200.5px; display: block !important;">
+                <div class="header">
+                  Ubah Tugas
+                </div>
+                <div class="content">
+                  <div class="ui form">
+                    <div class="field">
+                      <label>Tugas</label>
+                      <input v-model="new_title" type="text" placeholder="Ubah Tugas...">
+                    </div>
+                    <div class="field">
+                      <label>Keterangan</label>
+                      <textarea rows="2" v-model="new_text"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="actions">
+                  <div class="ui negative button" @click="modalCancel">
+                    Tidak
+                  </div>
+                  <div class="ui positive right labeled icon button" @click="modalsubmit(id_edit)">
+                    Ya
+                    <i class="checkmark icon"></i>
+                  </div>
+                </div>
+              </div>
+
+                <div :class="modalDetilMemo" style="margin-top: -92.5px; display: block !important;">
+                  <div class="ui card" style="width:100%">
+                    <div class="content">
+                      <i class="right floated remove icon" @click="modalCancel"></i>
+                      <div class="header">Detail</div>
+                      <div class="description">
+                        <div class="ui  message">
+                          <div class="header">
+                            Tugas
+                          </div>
+                          <p>{{new_title}}</p>
+                        </div>
+                        <div class="ui message">
+                          <div class="header">
+                            Deskripsi
+                          </div>
+                          <p>{{new_text}}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="extra content">
+                      <span class="left floated like">
+                       <i class="write icon"></i>
+                         {{created_at}}
+                     </span>
+                    </div>
+                  </div>
+                </div>
+
+
+              <div class="ui divider"></div>
+          </div>
+
+      </div>
+
+  </div>
+
+</div>
+
+
+  <script src="./js/main.js"></script>
+  <script src="./js/app.js"></script>
+
+  <script type="text/javascript">
+
+</script>
+
+</body>
+
+</html>
